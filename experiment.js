@@ -390,6 +390,7 @@ function makeSurveyPage(opts, file=null, index1=null){
     </div>`;
   const likertRows = itemsLikert.map(q=>{
     const cells = labelsLikert.map((lab,i)=>{
+      const val = LIKERT_POINTS - i;  // ★ここだけ変更（左から5,4,3,2,1）
       return `<label class="lm-cell">
                 <input type="radio" name="${q.name}" value="${i+1}" required aria-label="${lab}">
                 <span></span>
@@ -412,6 +413,7 @@ function makeSurveyPage(opts, file=null, index1=null){
     </div>`;
   const sdRows = itemsSD.map(q=>{
     const cells = labelsSD.map((lab,i)=>{
+      const val = LIKERT_POINTS - i;  // ★ここだけ変更
       return `<label class="sd-cell">
                 <input type="radio" name="${q.name}" value="${i+1}" required aria-label="${lab}">
                 <span></span>
@@ -476,9 +478,9 @@ prefetchStim(ord[i+1]);             // 念のため その次も
 
       // しれっとIMC（最後のページのみ includeIMC=true で呼ばれる）
       if (o.includeIMC) {
-        const v = resp['IMC_silent'];            // '1'..'5'
+        const v = resp['IMC_silent'];            
         d.imc_silent = v ?? null;
-        d.imc_silent_pass = (v === '4') ? 1 : 0; // ★ 左から4番目が正解（変更するならここ）
+        d.imc_silent_pass = (v === '2') ? 1 : 0; // ★ 左から4番目が正解
       }
     }
   };
