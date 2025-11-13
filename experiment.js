@@ -218,20 +218,59 @@ function extractLeadingId(file){
   return m ? parseInt(m[1], 10) : NaN;               // 01..08 → 1..8
 }
 
-// Williamsの1行をファイル配列に適用して順序化
+// 配列をコピーして Fisher–Yates でシャッフルする
+function shuffleCopy(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+
+// 「01〜04」と「05〜08」を別グループにして、交互に提示する版
+// ※ どちらを「ゴール追従あり／なし」と解釈するかは刺激の命名に依存
 function orderByWilliams8(files8){
   if (!Array.isArray(files8) || files8.length !== 8){
     throw new Error(`8 本の刺激を想定していますが、${files8?.length} 本が渡されました。`);
   }
+
   // 念のため：manifest順がID順でない可能性に備えて「先頭番号」で並べ替え
+  // 01..08 のID順にしておく
   const byId = [...files8].sort((a,b)=>extractLeadingId(a) - extractLeadingId(b));
 
-  const row = getSeriesRow1to8();       // 1..8（URLの ?seq 等で選択）
-  const seq = WILLIAMS8[row-1];         // 例: [1,8,2,7,3,6,4,5]
-  jsPsych.data.addProperties({ series_row: row, williams_seq: seq.join('-') });
+  // 先頭4本（ID 01〜04）と後半4本（ID 05〜08）を二つのグループに分ける
+  // （ここで例えば 01〜04 = ゴール追従あり, 05〜08 = なし のように設計しておく）
+  const groupA = byId.slice(0, 4);  // 01,02,03,04
+  const groupB = byId.slice(4, 8);  // 05,06,07,08
 
-  // seq の 1..8 を ID順配列に写像
-  return seq.map(i => byId[i-1]);
+  // 各グループの中身は独立にランダム化
+  const A = shuffleCopy(groupA);
+  const B = shuffleCopy(groupB);
+
+  // 最初が A か B かもランダムに決定
+  const startWithA = Math.random() < 0.5;
+
+  const seqFiles = [];
+  for (let i = 0; i < 4; i++){
+    if (startWithA){
+      // A-B-A-B-A-B-A-B
+      seqFiles.push(A[i], B[i]);
+    } else {
+      // B-A-B-A-B-A-B-A
+      seqFiles.push(B[i], A[i]);
+    }
+  }
+
+  // ログ用：どんな並びになったかを保存しておく
+  const ids = seqFiles.map(f => extractLeadingId(f));
+  jsPsych.data.addProperties({
+    order_pattern: startWithA ? 'A-B-A-B_startA' : 'B-A-B-A_startB',
+    order_ids: ids.join('-')
+  });
+
+  return seqFiles;
 }
 
 
