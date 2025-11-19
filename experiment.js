@@ -427,19 +427,19 @@ function makeSurveyPage(opts, file=null, index1=null){
         ${labelsLikert.map(l=>`<div>${l}</div>`).join('')}
       </div>
     </div>`;
-  const likertRows = itemsLikert.map(q=>{
-    const cells = labelsLikert.map((lab,i)=>{
-      const val = LIKERT_POINTS - i;  // ★ここだけ変更（左から5,4,3,2,1）
-      return `<label class="lm-cell">
-                <input type="radio" name="${q.name}" value="${i+1}" required aria-label="${lab}">
-                <span></span>
-              </label>`;
-    }).join('');
-    return `<div class="lm-row">
-              <div class="lm-label">${q.label}</div>
-              <div class="lm-strip">${cells}</div>
-            </div>`;
+const likertRows = itemsLikert.map(q=>{
+  const cells = labelsLikert.map((lab,i)=>{
+    const val = LIKERT_POINTS - i;  // ★ 左端=5, その次=4,... 右端=1
+    return `<label class="lm-cell">
+              <input type="radio" name="${q.name}" value="${val}" required aria-label="${lab}">
+              <span></span>
+            </label>`;
   }).join('');
+  return `<div class="lm-row">
+            <div class="lm-label">${q.label}</div>
+            <div class="lm-strip">${cells}</div>
+          </div>`;
+}).join('');
 
   // 2) SD・ブロック（左右アンカー＋上部尺度ラベル＋各行バー）
   const sdHeader = `
@@ -450,20 +450,21 @@ function makeSurveyPage(opts, file=null, index1=null){
       </div>
       <div></div>
     </div>`;
-  const sdRows = itemsSD.map(q=>{
-    const cells = labelsSD.map((lab,i)=>{
-      const val = LIKERT_POINTS - i;  // ★ここだけ変更
-      return `<label class="sd-cell">
-                <input type="radio" name="${q.name}" value="${i+1}" required aria-label="${lab}">
-                <span></span>
-              </label>`;
-    }).join('');
-    return `<div class="sd-row">
-              <div class="sd-anch">${q.left}</div>
-              <div class="sd-strip">${cells}</div>
-              <div class="sd-anch">${q.right}</div>
-            </div>`;
+const sdRows = itemsSD.map(q=>{
+  const cells = labelsSD.map((lab,i)=>{
+    const val = LIKERT_POINTS - i;  // ★ 左端のラベルが5点
+    return `<label class="sd-cell">
+              <input type="radio" name="${q.name}" value="${val}" required aria-label="${lab}">
+              <span></span>
+            </label>`;
   }).join('');
+  return `<div class="sd-row">
+            <div class="sd-anch">${q.left}</div>
+            <div class="sd-strip">${cells}</div>
+            <div class="sd-anch">${q.right}</div>
+          </div>`;
+}).join('');
+
 
   // 自由記述
   const free = o.allowFreeText
